@@ -334,7 +334,7 @@ type metrics struct {
 	router              *weave.NetworkRouter
 	allocator           *ipam.Allocator
 	connectionCountDesc *prometheus.Desc
-	activeIPsDesc       *prometheus.Desc
+	ipsDesc             *prometheus.Desc
 }
 
 func newMetrics(router *weave.NetworkRouter, allocator *ipam.Allocator) *metrics {
@@ -347,10 +347,10 @@ func newMetrics(router *weave.NetworkRouter, allocator *ipam.Allocator) *metrics
 			[]string{"state"},
 			prometheus.Labels{},
 		),
-		activeIPsDesc: prometheus.NewDesc(
-			"weave_active_ips",
-			"Number of active IP addresses.",
-			[]string{},
+		ipsDesc: prometheus.NewDesc(
+			"weave_ips",
+			"Number of IP addresses.",
+			[]string{"state"},
 			prometheus.Labels{},
 		),
 	}
@@ -374,10 +374,11 @@ func (m *metrics) Collect(ch chan<- prometheus.Metric) {
 	intMetric(m.connectionCountDesc, established, "established")
 
 	ipamStatus := ipam.NewStatus(m.allocator, address.CIDR{})
-	intMetric(m.activeIPsDesc, ipamStatus.ActiveIPs)
+	intMetric(m.ipsDesc, ipamStatus.RangeNumIPs, "total")
+	intMetric(m.ipsDesc, ipamStatus.ActiveIPs, "local-used")
 }
 
 func (m *metrics) Describe(ch chan<- *prometheus.Desc) {
 	ch <- m.connectionCountDesc
-	ch <- m.activeIPsDesc
+	ch <- m.ipsDesc
 }
