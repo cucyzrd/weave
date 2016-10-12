@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/weaveworks/mesh"
 
@@ -321,5 +323,7 @@ func HandleHTTP(muxRouter *mux.Router, version string, router *weave.NetworkRout
 	defHandler("/status/dns", dnsEntriesTemplate)
 	defHandler("/status/ipam", ipamTemplate)
 
-	muxRouter.Methods("GET").Path("/metrics").Handler(promhttp.Handler())
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(prometheus.NewProcessCollector(os.Getpid(), ""))
+	muxRouter.Methods("GET").Path("/metrics").Handler(promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 }
