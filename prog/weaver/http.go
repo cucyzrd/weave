@@ -347,8 +347,8 @@ func newMetrics(router *weave.NetworkRouter) *metrics {
 }
 
 func (m *metrics) Collect(ch chan<- prometheus.Metric) {
-	intMetric := func(desc *prometheus.Desc, val int, label string) {
-		ch <- prometheus.MustNewConstMetric(desc, prometheus.CounterValue, float64(val), label)
+	intMetric := func(desc *prometheus.Desc, val int, labels ...string) {
+		ch <- prometheus.MustNewConstMetric(desc, prometheus.CounterValue, float64(val), labels...)
 	}
 
 	routerStatus := weave.NewNetworkRouterStatus(m.router)
